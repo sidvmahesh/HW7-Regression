@@ -129,7 +129,8 @@ class LogisticRegressor(BaseRegressor):
         Returns: 
             The predicted labels (y_pred) for given X.
         """
-        pass
+        #return 1 / (1 + np.exp(-1 * np.dot(X, self.W)))
+        return 1 / (1 + np.exp(-1 * np.matmul(X, self.W)))
     
     def loss_function(self, y_true, y_pred) -> float:
         """
@@ -143,7 +144,16 @@ class LogisticRegressor(BaseRegressor):
         Returns: 
             The mean loss (a single number).
         """
-        pass
+        y_pred = np.clip(y_pred, 1e-10, 1 - 1e-10)
+        #y_true = y_true.reshape((y_true.shape[0], 1))
+        # Below Correct
+        #print("loss_function: ", (-1 * y_true * np.log(y_pred) - (1 - y_true)*np.log(1 - y_pred)))
+        #print("loss_function: ", -np.mean((1-y_true) * np.log(1-y_pred) + y_true * np.log(y_pred)))#((1-y_true) * np.log(1-y_pred) + y_true * np.log(y_pred)).shape)
+        #print((-1 * y_true * np.log(y_pred) - (1 - y_true) * np.log(1 - y_pred)).shape)
+        #return np.mean(-1 * y_true * np.log(y_pred) - (1 - y_true)*np.log(1 - y_pred))
+        #print("Checking shape: ", (np.dot(-y_true, np.log(y_pred)) - np.dot((1 - y_true), np.log(1 - y_pred))).shape)
+        return np.mean(-y_true * np.log(y_pred) - (1 - y_true) * np.log(1 - y_pred))
+        #return -np.mean((1-y_true) * np.log(1-y_pred) + y_true * np.log(y_pred))
         
     def calculate_gradient(self, y_true, X) -> np.ndarray:
         """
@@ -157,4 +167,15 @@ class LogisticRegressor(BaseRegressor):
         Returns: 
             Vector of gradients.
         """
-        pass
+        # https://www.python-unleashed.com/post/derivation-of-the-binary-cross-entropy-loss-gradient
+        #y_true = y_true.reshape((y_true.shape[0], 1))
+        y_pred = self.make_prediction(X)
+        #print("X.shape: ", X.shape, y_pred.shape, y_true.shape, (y_pred - y_true) * X)
+        # Below Correct
+        print("Gradient: ", np.matmul((y_pred - y_true), X).shape)
+        #return np.matmul(y_pred - y_true, X)
+        return np.matmul(y_pred - y_true, X)
+        #print("true gradient: ", (1 / len(y_pred)) * ((-y_true / y_pred) + ((1 - y_true) / (1 - y_pred))))
+        #return (1 / len(y_pred)) * ((-y_true / y_pred) + ((1 - y_true) / (1 - y_pred)))
+        #return -1 / y_pred if y_true else 1
+        #return -1 * np.dot(X.T, (y_true - y_pred)) / len(y_true)
